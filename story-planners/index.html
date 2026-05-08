@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기획실 — 크랙AI 스토리 플래너</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;900&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #08080f;
+  --bg2:       #0d0d18;
+  --surface:   #12121f;
+  --surface2:  #18182a;
+  --border:    #1e1e30;
+  --border2:   #28283c;
+
+  --a:         #f5c842;
+  --a-glow:    rgba(245,200,66,.15);
+  --a-dim:     rgba(245,200,66,.08);
+
+  --b:         #5dd3f0;
+  --b-glow:    rgba(93,211,240,.15);
+  --b-dim:     rgba(93,211,240,.08);
+
+  --c:         #b57cf5;
+  --c-glow:    rgba(181,124,245,.15);
+  --c-dim:     rgba(181,124,245,.08);
+
+  --conclude:  #f0758a;
+  --conclude-glow: rgba(240,117,138,.15);
+  --conclude-dim:  rgba(240,117,138,.08);
+
+  --expand:    #5dd9c0;
+  --expand-glow: rgba(93,217,192,.15);
+  --expand-dim:  rgba(93,217,192,.08);
+
+  --user:      #5ddba8;
+  --user-dim:  rgba(93,219,168,.08);
+
+  --text:      #d4d0e8;
+  --text2:     #9994b8;
+  --muted:     #4a4760;
+
+  --radius:    10px;
+  --radius-sm: 6px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ─── Header ─── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, #7060d0, #a060c0);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  box-shadow: 0 0 12px rgba(120,80,200,.3);
+}
+.logo-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0d8f8;
+  letter-spacing: 0.05em;
+}
+.logo-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+.agents {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.agent-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.agent-pill:hover { filter: brightness(1.2); }
+.pill-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.pill-a { background: var(--a-dim); border-color: rgba(245,200,66,.2); color: var(--a); }
+.pill-a .pill-dot { background: var(--a); box-shadow: 0 0 4px var(--a); }
+.pill-b { background: var(--b-dim); border-color: rgba(93,211,240,.2); color: var(--b); }
+.pill-b .pill-dot { background: var(--b); box-shadow: 0 0 4px var(--b); }
+.pill-c { background: var(--c-dim); border-color: rgba(181,124,245,.2); color: var(--c); }
+.pill-c .pill-dot { background: var(--c); box-shadow: 0 0 4px var(--c); }
+
+/* ─── Tabs ─── */
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 0 24px;
+  gap: 4px;
+}
+.tab-btn {
+  padding: 0 16px;
+  height: 40px;
+  font-size: 12.5px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text2); }
+.tab-btn.active {
+  color: #c0b0f0;
+  border-bottom-color: #7060d0;
+}
+
+/* ─── Tab Panels ─── */
+.tab-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.tab-panel.active { display: flex; }
+
+/* ─── Chat Area ─── */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scroll-behavior: smooth;
+}
+
+/* ─── Messages ─── */
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: msg-in 0.25s ease;
+  margin-bottom: 10px;
+}
+@keyframes msg-in {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 3px;
+}
+.msg-who {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.msg-role {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.bubble {
+  padding: 11px 15px;
+  border-radius: 4px 12px 12px 12px;
+  font-size: 13px;
+  line-height: 1.85;
+  max-width: 90%;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  border: 1px solid transparent;
+  position: relative;
+}
+
+/* Agent A */
+.msg-a .msg-who { color: var(--a); }
+.msg-a .bubble {
+  background: var(--a-dim);
+  border-color: rgba(245,200,66,.15);
+  border-left: 2px solid var(--a);
+  color: #f0e0b0;
+  box-shadow: inset 0 0 20px var(--a-glow);
+}
+
+/* Agent B */
+.msg-b .msg-who { color: var(--b); }
+.msg-b .bubble {
+  background: var(--b-dim);
+  border-color: rgba(93,211,240,.15);
+  border-left: 2px solid var(--b);
+  color: #b8e8f8;
+  box-shadow: inset 0 0 20px var(--b-glow);
+}
+
+/* Agent C */
+.msg-c .msg-who { color: var(--c); }
+.msg-c .bubble {
+  background: var(--c-dim);
+  border-color: rgba(181,124,245,.15);
+  border-left: 2px solid var(--c);
+  color: #dcc8f8;
+  box-shadow: inset 0 0 20px var(--c-glow);
+}
+
+/* Conclude */
+.msg-conclude .msg-who { color: var(--conclude); }
+.msg-conclude .bubble {
+  background: var(--conclude-dim);
+  border-color: rgba(240,117,138,.15);
+  border-left: 2px solid var(--conclude);
+  color: #f8c0cc;
+  box-shadow: inset 0 0 20px var(--conclude-glow);
+  max-width: 100%;
+}
+
+/* Expand */
+.msg-expand .msg-who { color: var(--expand); }
+.msg-expand .bubble {
+  background: var(--expand-dim);
+  border-color: rgba(93,217,192,.15);
+  border-left: 2px solid var(--expand);
+  color: #b8f0e8;
+  box-shadow: inset 0 0 20px var(--expand-glow);
+}
+
+/* User */
+.msg-user { align-items: flex-end; }
+.msg-user .msg-meta { justify-content: flex-end; }
+.msg-user .msg-who { color: var(--user); }
+.msg-user .bubble {
+  background: var(--user-dim);
+  border-color: rgba(93,219,168,.15);
+  border-right: 2px solid var(--user);
+  border-left: 1px solid rgba(93,219,168,.15);
+  border-radius: 12px 4px 12px 12px;
+  color: #b8e8d0;
+  box-shadow: inset 0 0 20px rgba(93,219,168,.08);
+}
+
+/* ─── Thinking ─── */
+.thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.thinking-label { font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+.dots { display: flex; gap: 3px; align-items: center; }
+.dots span {
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  animation: blink 1.4s infinite ease-in-out;
+}
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0%,80%,100% { opacity:0.2; transform:scale(0.8); }
+  40% { opacity:1; transform:scale(1.2); }
+}
+
+/* ─── Round Divider ─── */
+.round-div {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  margin: 14px 0 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  position: relative;
+}
+.round-div::before, .round-div::after {
+  content: '';
+  position: absolute;
+  top: 50%; width: 40%; height: 1px;
+  background: linear-gradient(to right, transparent, var(--border2));
+}
+.round-div::before { left:0; background: linear-gradient(to right, transparent, var(--border2)); }
+.round-div::after  { right:0; background: linear-gradient(to left, transparent, var(--border2)); }
+
+/* ─── Status Bar ─── */
+.status-bar {
+  height: 30px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 11px;
+  color: var(--muted);
+  gap: 8px;
+  flex-shrink: 0;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: all 0.3s;
+}
+.status-dot.active {
+  background: #5ddb90;
+  box-shadow: 0 0 6px #5ddb90;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ─── Input Area ─── */
+.input-area {
+  padding: 14px 24px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.input-row { display: flex; gap: 10px; align-items: flex-end; }
+
+textarea {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px 14px;
+  resize: none;
+  min-height: 42px;
+  max-height: 120px;
+  line-height: 1.6;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+textarea:focus {
+  border-color: #4a3a80;
+  box-shadow: 0 0 0 3px rgba(100,80,180,.1);
+}
+textarea::placeholder { color: var(--muted); font-size: 12px; }
+
+.send-btn {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, #2a2050, #1e1840);
+  border: 1px solid #4a3a80;
+  border-radius: var(--radius-sm);
+  color: #9080d0;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.send-btn:hover {
+  background: linear-gradient(135deg, #352860, #281e50);
+  color: #b0a0e0;
+  box-shadow: 0 0 10px rgba(100,80,200,.2);
+}
+.send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.hint {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* ─── Welcome ─── */
+.welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  padding: 32px;
+}
+.welcome-icon {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, #2a1e50, #1e1438);
+  border: 1px solid #3a2870;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 8px 32px rgba(80,50,160,.2);
+}
+.welcome h2 {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: #d8d0f0;
+  line-height: 1.5;
+}
+.welcome p {
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.9;
+  max-width: 380px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 480px;
+}
+.chip {
+  padding: 6px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface2);
+  font-family: inherit;
+}
+.chip:hover {
+  border-color: #4a3880;
+  color: #c0b8e0;
+  background: #1a1830;
+  transform: translateY(-1px);
+}
+
+/* ─── Expand Zone ─── */
+.expand-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+}
+
+.upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: var(--surface2);
+  border: 1px dashed #3a2870;
+  border-radius: var(--radius);
+  color: #9080c0;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.upload-label:hover {
+  border-color: #6050b0;
+  color: #c0b0e0;
+  background: #14122a;
+  box-shadow: 0 0 20px rgba(80,50,150,.15);
+}
+#file-input { position: absolute; left: -9999px; opacity: 0; width: 0; height: 0; }
+.file-name {
+  font-size: 12px;
+  color: var(--expand);
+  display: none;
+}
+.expand-start-btn {
+  padding: 11px 28px;
+  background: var(--expand-dim);
+  border: 1px solid rgba(93,217,192,.3);
+  border-radius: var(--radius-sm);
+  color: var(--expand);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: none;
+}
+.expand-start-btn:hover {
+  background: rgba(93,217,192,.15);
+  box-shadow: 0 0 16px rgba(93,217,192,.15);
+}
+.expand-start-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ─── Download Button ─── */
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 8px 18px;
+  background: var(--expand-dim);
+  border: 1px solid rgba(93,217,192,.3);
+  border-radius: var(--radius-sm);
+  color: var(--expand);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.download-btn:hover {
+  background: rgba(93,217,192,.15);
+  box-shadow: 0 0 12px rgba(93,217,192,.15);
+}
+
+/* ─── API Key Modal ─── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  animation: fade-in 0.2s ease;
+}
+@keyframes fade-in { from{opacity:0} to{opacity:1} }
+.modal {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 28px;
+  width: 340px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  animation: modal-in 0.25s ease;
+}
+@keyframes modal-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+.modal h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e0d8f8;
+  margin-bottom: 8px;
+}
+.modal p {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.modal input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  padding: 10px 12px;
+  outline: none;
+  margin-bottom: 14px;
+  transition: border-color 0.2s;
+}
+.modal input:focus { border-color: #5040a0; }
+.modal-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #3a2878, #2a1e60);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #d0c8f8;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-btn:hover { background: linear-gradient(135deg, #4a3888, #361e70); }
+.modal-note { font-size: 10px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- API Key Modal -->
+<div class="modal-overlay" id="api-modal">
+  <div class="modal">
+    <h3>🔑 API 키 입력</h3>
+    <p>Anthropic API 키를 입력해주세요.<br>키는 이 브라우저에만 저장됩니다.</p>
+    <input type="password" id="api-key-input" placeholder="sk-ant-api03-...">
+    <button class="modal-btn" onclick="saveApiKey()">시작하기</button>
+    <p class="modal-note">* 키는 sessionStorage에만 저장되며 외부로 전송되지 않습니다.<br>* API 사용 요금은 Anthropic 계정에서 확인하세요.</p>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">✦</div>
+    <div>
+      <span class="logo-text">기획실</span>
+      <span class="logo-sub">크랙AI 스토리 플래너</span>
+    </div>
+  </div>
+  <div class="agents">
+    <div class="agent-pill pill-a"><div class="pill-dot"></div>A · 세계관</div>
+    <div class="agent-pill pill-b"><div class="pill-dot"></div>B · 캐릭터</div>
+    <div class="agent-pill pill-c"><div class="pill-dot"></div>C · 서사</div>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('new')">✦ 새 기획</button>
+  <button class="tab-btn" onclick="switchTab('expand')">↗ 설정 보강</button>
+</div>
+
+<!-- Tab 1: 새 기획 -->
+<div class="tab-panel active" id="tab-new">
+  <div class="chat-area" id="chat-new">
+    <div class="welcome" id="welcome-new">
+      <div class="welcome-icon">✦</div>
+      <h2>기획을 시작해 드립니다</h2>
+      <p>장르, 세계관, 캐릭터 설정을 던지면<br>A·B·C가 3라운드 토론 후 기획서를 완성합니다.</p>
+      <div class="chips">
+        <button class="chip" onclick="useChip(this)">조선시대 오메가버스</button>
+        <button class="chip" onclick="useChip(this)">이세계 × 역사 다크로맨스</button>
+        <button class="chip" onclick="useChip(this)">귀족 보이스 힐러 회사 BL</button>
+        <button class="chip" onclick="useChip(this)">이이세계 이능자 있는 반의물</button>
+        <button class="chip" onclick="useChip(this)">뱀파이어 × 헌터 로맨스</button>
+      </div>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot-new"></div>
+    <span id="status-text-new">대기 중</span>
+  </div>
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="input-new" placeholder="장르나 설정을 던져주세요..." rows="1"></textarea>
+      <button class="send-btn" id="send-new" onclick="startNew()">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <path d="M1 7.5h13M8.5 2l5.5 5.5L8.5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="hint">Enter 전송 · Shift+Enter 줄바꿈</div>
+  </div>
+</div>
+
+<!-- Tab 2: 설정 보강 -->
+<div class="tab-panel" id="tab-expand">
+  <div class="chat-area" id="chat-expand">
+    <div class="expand-zone" id="expand-zone">
+      <p style="font-size:12.5px;color:var(--text2)">기존 HTML 설정 파일을 불러와 A·B·C가 보강합니다</p>
+      <label class="upload-label" id="upload-label">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2v9M4 7l4-5 4 5M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        파일 첨부
+        <input type="file" id="file-input" accept=".html,.htm,.txt,.md">
+      </label>
+      <div class="file-name" id="file-name"></div>
+      <button class="expand-start-btn" id="expand-start-btn" onclick="startExpand()">
+        A·B·C 보강 토론 시작
+      </button>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot-exp"></div>
+    <span id="status-text-exp">파일을 업로드해주세요</span>
+  </div>
+</div>
+
+<script>
+// ─── API Key ───
+let API_KEY = sessionStorage.getItem('crack_api_key') || '';
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) return;
+  API_KEY = val;
+  sessionStorage.setItem('crack_api_key', val);
+  document.getElementById('api-modal').remove();
+}
+
+document.getElementById('api-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveApiKey();
+});
+
+window.addEventListener('load', () => {
+  if (API_KEY) document.getElementById('api-modal').remove();
+});
+
+// ─── System Prompts ───
+const SYSTEMS = {
+  A: `당신은 기획사 A, 판타지 세계관 설계 전문가입니다.
+담당: 세계의 물리 법칙, 마법/능력 체계, 정부/계층 구조, 설정 내부 논리 일관성.
+규칙:
+- 짧고 날카롭게. 한 발언 3~5문장 이내.
+- 설정 구멍 발견 시 즉시 지적.
+- B, C 의견을 직접 반응하며 논쟁.
+- 결론 미확정 시 질문 던질 것.
+- 세계관 발언 시 "세계관 확정:" 으로 시작.
+- 한국어만. 이름 태그 금지.`,
+  B: `당신은 기획사 B, 캐릭터 & 감정선 설계 전문가입니다.
+담당: 주인공의 욕망/결핍/갈등, 인물 관계 역학, 사별 감정 온도, 동선 몰입 포인트.
+규칙:
+- 짧고 날카롭게. 한 발언 3~5문장 이내.
+- 캐릭터 심리 허점 발견 시 즉시 지적.
+- A, C 의견을 직접 반응하며 논쟁.
+- 결론 미확정 시 캐릭터 선택 던질 것.
+- 캐릭터 발언 시 "캐릭터 확정:" 으로 시작.
+- 한국어만. 이름 태그 금지.`,
+  C: `당신은 기획사 C, 서사 & 동선 설계 전문가입니다.
+담당: 플롯 구조, 클리셰 함정, 화차별 자극 배분, 크랙AI 향후 공식.
+규칙:
+- 짧고 날카롭게. 한 발언 3~5문장 이내.
+- 클리셰 즉시 지적 + 대안 제안.
+- A, B 의견을 직접 반응하며 논쟁.
+- 결론 미확정 시 플롯 선택 던질 것.
+- 서사 발언 시 "서사 확정:" 으로 시작.
+- 한국어만. 이름 태그 금지.`,
+};
+
+const CONCLUDE_SYSTEM = `당신은 크랙AI 스토리 기획 총괄입니다.
+A(세계관), B(캐릭터), C(서사) 기획자들의 토론을 종합해 완성된 최종 기획서를 작성하세요.
+각 항목은 구체적이고 밀도 있게. 추상적 설명 금지. 실제로 쓸 수 있는 수준으로.
+
+형식:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 작품 제목 (가제)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【장르 & 분위기】
+장르 조합 + 핵심 톤
+
+【세계관 규칙】
+각 규칙이 왜 존재하고 어떤 사회적 효과를 만드는지까지 작성.
+• 규칙1 → 설명 (사회적 맥락 포함)
+• 규칙2 → 설명
+• 규칙3 → 설명
+• 규칙4 → 설명
+• 규칙5 (선택)
+
+【특수 설정】 (오메가버스·특수 능력·계층 등 있는 경우)
+각 계층의 특징, 사회적 위치, 생물학적 특성, 최고 수단, 인식 격차 항목별 작성.
+
+【용어집】
+이 작품 고유 단어 5~8개.
+단어 → 정의 (뉘앙스·사용 맥락 포함)
+
+【등장인물】
+▸ 주인공1
+  이름 / 나이 / 직업 / 2차성 / 고유 특성
+  욕망: (표면적으로 원하는 것)
+  결핍: (실제로 부족한 것)
+  말투·행동 패턴: (구체적으로)
+  대사예시: (실제 대사체로 1~2개)
+
+▸ 주인공2
+  이름 / 나이 / 직업 / 2차성 / 고유 특성
+  욕망:
+  결핍:
+  말투·행동 패턴:
+  대사예시:
+
+▸ 조연 (있으면)
+  이름 / 역할 / 관계 / 서사 기능
+
+【관계 구조】
+두 인물의 역학, 현재 거리감, 갈등 축, 감정 온도차를 구체적으로. (5~7문장)
+
+【사회적 갈등 유형】 (차별·기피 상황 있는 경우)
+주인공이 겪는 구체적 상황들을 유형별로.
+상황명 → 타격 포인트 / 실제 원인 / 주인공 반응
+
+【플롯 라인】
+1화 훅: (독자가 멈추는 구체적 장면)
+2~5화: (관계 형성 + 세계관 노출 방식)
+중반 갈등: (핵심 갈등 폭발 포인트)
+클라이막스: (감정 절정 장면)
+결말 방향: (선택 + 이유)
+
+【크랙AI 특화 포인트】
+• 당김 장면 (구체적 묘사)
+• 클리셰 함정 포인트 (무엇을 어떻게 비틀었는지)
+• 연재 주기 + 분량 제안
+• 추천 해시태그 8개 이상
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+한국어로만. 모든 항목 빠짐없이 작성.`;
+
+const CLARIFY_SYSTEM = `당신은 크랙AI 스토리 기획 어시스턴트입니다.
+유저가 설정을 던지면, 토론 전에 설정 구체화 질문을 합니다.
+규칙:
+- 질문 정확히 4개, 번호(1. 2. 3. 4.)로.
+- 각 질문 한 줄, 간결하게.
+- 세계관/캐릭터/관계/서사 방향 골고루 담기.
+- 선택지 없으면 (예: A / B / C) 형식으로.
+- 앞뒤 설명 없이 질문만.
+- 한국어만.`;
+
+const EXPAND_SYSTEMS = {
+  A: `당신은 기획사 A, 세계관 설계 전문가입니다.
+주어진 설정 문서를 분석해 세계관 측면에서 빠진 것, 허점, 보강할 포인트를 지적하세요.
+규칙:
+- 짧고 날카롭게. 한 발언 3~5문장.
+- "이 설정에서 세계관적으로 부족한 게 뭔가"에 집중.
+- B, C와 논쟁하며 보강 방향 구체화.
+- 한국어만. 이름 태그 금지.`,
+  B: `당신은 기획사 B, 캐릭터 설계 전문가입니다.
+주어진 설정 문서를 분석해 캐릭터·감정선 측면에서 빠진 것, 허점, 보강할 포인트를 지적하세요.
+규칙:
+- 짧고 날카롭게. 한 발언 3~5문장.
+- "이 캐릭터에서 뭔가 더 필요한가"에 집중.
+- A, C와 논쟁하며 보강 방향 구체화.
+- 한국어만. 이름 태그 금지.`,
+  C: `당신은 기획사 C, 서사·톤 설계 전문가입니다.
+주어진 설정 문서를 분석해 서사·동선 측면에서 빠진 것, 허점, 보강할 포인트를 지적하세요.
+규칙:
+- 짧고 날카롭게. 한 발언 3~5문장.
+- "이 설정으로 크랙AI에서 왜 읽히는 이유가 뭔가"에 집중.
+- A, B와 논쟁하며 보강 방향 구체화.
+- 한국어만. 이름 태그 금지.`,
+};
+
+const EXPAND_CONCLUDE_SYSTEM = `당신은 기획 총괄입니다.
+원본 설정 문서와 A·B·C의 보강 토론을 바탕으로, 원본을 완전히 확장·보강한 새 설정 문서를 HTML로 출력하세요.
+
+규칙:
+- 원본 항목을 모두 유지하되, 각 항목을 실질적으로 확장하세요.
+- 토론에서 나온 보강 포인트를 반영해 새 항목을 추가하세요.
+- 출력은 반드시 완전한 HTML 파일로. <!DOCTYPE html>부터 </html>까지.
+- 스타일: 다크모드, 가독성 좋은 한국어 폰트, 섹션별 구분선.
+- 내용 외 설명 텍스트 없이 HTML만 출력.`;
+
+// ─── State ───
+let newPhase = 'idle';
+let newTopic = '';
+let newHistory = [];
+let expandContent = '';
+let expandHistory = [];
+let expandRunning = false;
+
+const INFO = {
+  A:       { label:'A',        role:'세계관 설계',   cls:'msg-a' },
+  B:       { label:'B',        role:'캐릭터·감정',  cls:'msg-b' },
+  C:       { label:'C',        role:'서사·동선',    cls:'msg-c' },
+  CONCLUDE:{ label:'최종 기획서', role:'종합',        cls:'msg-conclude' },
+  EXPAND:  { label:'보강 완료',  role:'확장 문서',   cls:'msg-expand' },
+  USER:    { label:'YOU',      role:'',             cls:'msg-user' },
+  SYSTEM:  { label:'기획실',    role:'설정 확인',    cls:'msg-conclude' },
+};
+
+// ─── Tab switch ───
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) =>
+    b.classList.toggle('active', (i===0&&t==='new')||(i===1&&t==='expand')));
+  document.getElementById('tab-new').classList.toggle('active', t==='new');
+  document.getElementById('tab-expand').classList.toggle('active', t==='expand');
+}
+
+// ─── DOM helpers ───
+function getChat(id) { return document.getElementById('chat-'+id); }
+
+function setStatus(id, text, active=false) {
+  document.getElementById('status-text-'+id).textContent = text;
+  const dot = document.getElementById('status-dot-'+id);
+  dot.className = 'status-dot' + (active ? ' active' : '');
+}
+
+function addDivider(chatId, text) {
+  const el = document.createElement('div');
+  el.className = 'round-div';
+  el.textContent = text;
+  getChat(chatId).appendChild(el);
+  getChat(chatId).scrollTop = 99999;
+}
+
+function addMsg(chatId, who, text) {
+  const info = INFO[who];
+  const chat = getChat(chatId);
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${info.cls}`;
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  meta.innerHTML = `<span class="msg-who">${info.label}</span>${info.role ? `<span class="msg-role">${info.role}</span>` : ''}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  wrap.appendChild(meta);
+  wrap.appendChild(bubble);
+  chat.appendChild(wrap);
+  chat.scrollTop = 99999;
+  return bubble;
+}
+
+let thinkingEl = null;
+function showThinking(chatId, who) {
+  removeThinking();
+  const info = INFO[who];
+  const chat = getChat(chatId);
+  thinkingEl = document.createElement('div');
+  thinkingEl.className = 'thinking';
+  const colorMap = { A:'var(--a)', B:'var(--b)', C:'var(--c)', CONCLUDE:'var(--conclude)', EXPAND:'var(--expand)', SYSTEM:'var(--conclude)' };
+  const dotColor = colorMap[who] || 'var(--muted)';
+  thinkingEl.innerHTML = `
+    <span class="thinking-label" style="color:${dotColor}">${info.label}</span>
+    <div class="dots">
+      <span style="background:${dotColor}"></span>
+      <span style="background:${dotColor}"></span>
+      <span style="background:${dotColor}"></span>
+    </div>`;
+  chat.appendChild(thinkingEl);
+  chat.scrollTop = 99999;
+}
+function removeThinking() {
+  if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+}
+
+// ─── API ───
+async function callClaude(system, messages, maxTokens=1000) {
+  if (!API_KEY) throw new Error('API key missing');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens, system, messages })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content?.[0]?.text?.trim() || '(응답 없음)';
+}
+
+// ─── Tab 1: 새 기획 ───
+function buildNewMessages(forWho) {
+  const lines = [`주제: ${newTopic}`, '', '--- 지금까지 토론 ---'];
+  for (const h of newHistory) lines.push(`[기획사 ${h.who}] ${h.text}`);
+  lines.push('', `이제 당신 (기획사 ${forWho})의 차례입니다. 짧고 날카롭게.`);
+  return [{ role:'user', content:lines.join('\n') }];
+}
+
+async function runNewDebate() {
+  for (let round=1; round<=3; round++) {
+    addDivider('new', `Round ${round} / 3`);
+    for (const who of ['A','B','C']) {
+      showThinking('new', who);
+      setStatus('new', `기획사 ${who} 작성 중...`, true);
+      try {
+        const reply = await callClaude(SYSTEMS[who], buildNewMessages(who));
+        removeThinking();
+        addMsg('new', who, reply);
+        newHistory.push({ who, text:reply });
+      } catch(e) { removeThinking(); addMsg('new', who, `(오류: ${e.message})`); }
+    }
+  }
+
+  addDivider('new', '최종 기획서');
+  showThinking('new', 'CONCLUDE');
+  setStatus('new', '최종 기획서 작성 중...', true);
+  const lines = [`주제: ${newTopic}`, '', '--- 전체 토론 ---'];
+  for (const h of newHistory) lines.push(`[기획사 ${h.who}] ${h.text}`);
+  lines.push('', '이 토론을 종합해 최종 기획서를 작성하세요.');
+  try {
+    const reply = await callClaude(CONCLUDE_SYSTEM, [{role:'user',content:lines.join('\n')}], 4000);
+    removeThinking();
+    addMsg('new', 'CONCLUDE', reply);
+    addDownloadBtn('new', newTopic, newHistory, reply);
+  } catch(e) { removeThinking(); addMsg('new', 'CONCLUDE', `(오류: ${e.message})`); }
+  setStatus('new', '완료');
+  document.getElementById('send-new').disabled = false;
+}
+
+function addDownloadBtn(chatId, topic, history, conclude) {
+  const chat = getChat(chatId);
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;justify-content:center;margin:14px 0 4px;';
+  const btn = document.createElement('button');
+  btn.className = 'download-btn';
+  btn.innerHTML = '↓ 토론 내역 저장';
+  btn.onclick = () => downloadSession(topic, history, conclude);
+  wrap.appendChild(btn);
+  chat.appendChild(wrap);
+  chat.scrollTop = 99999;
+}
+
+function downloadSession(topic, history, conclude) {
+  const rows = history.map(h => {
+    const roleMap = {A:'세계관 설계', B:'캐릭터·감정', C:'서사·동선'};
+    const color = {A:'#f5c842', B:'#5dd3f0', C:'#b57cf5'}[h.who];
+    return `<div class="msg">
+      <div class="meta"><span style="color:${color}">${h.who}</span><span class="role"> · ${roleMap[h.who]}</span></div>
+      <div class="bubble" style="border-left-color:${color}">${h.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`;
+  }).join('\n');
+
+  const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>기획실 — ${new Date().toLocaleDateString('ko-KR')}</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08080f;color:#d4d0e8;font-family:'Pretendard',sans-serif;padding:32px;max-width:800px;margin:0 auto}
+h1{font-size:16px;color:#e0d8f8;margin-bottom:4px;font-weight:600}
+.date{font-size:11px;color:#4a4760;margin-bottom:28px}
+.topic{background:rgba(100,80,200,.08);border-left:2px solid #7060d0;padding:12px 16px;border-radius:3px 10px 10px 3px;font-size:13px;color:#c0b0e8;margin-bottom:24px;white-space:pre-wrap}
+.round{text-align:center;font-size:10px;color:#4a4760;margin:20px 0 10px;letter-spacing:.12em;text-transform:uppercase}
+.msg{margin-bottom:12px}
+.meta{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.role{color:#4a4760!important;font-size:10px!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important}
+.bubble{padding:10px 14px;border-radius:4px 12px 12px 12px;font-size:13px;line-height:1.85;border:1px solid rgba(255,255,255,.05);border-left:2px solid;background:rgba(255,255,255,.03);white-space:pre-wrap;word-break:keep-all}
+.conclude{background:rgba(240,117,138,.06);border-left:2px solid #f0758a;border-radius:4px 12px 12px 12px;padding:14px 18px;font-size:13px;line-height:1.9;color:#f8c0cc;white-space:pre-wrap;word-break:keep-all;margin-top:10px}
+.conclude-label{font-size:10.5px;color:#f0758a;margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+</style>
+</head>
+<body>
+<h1>✦ 기획실 토론 내역</h1>
+<div class="date">${new Date().toLocaleString('ko-KR')}</div>
+<div class="topic">${topic.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+${rows}
+<div style="margin-top:24px">
+  <div class="conclude-label">최종 기획서</div>
+  <div class="conclude">${conclude.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+</div>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `기획실_${new Date().toLocaleDateString('ko-KR').replace(/\./g,'').replace(/ /g,'')}.html`;
+  a.click();
+}
+
+async function startNew() {
+  const btn = document.getElementById('send-new');
+  if (btn.disabled) return;
+  const input = document.getElementById('input-new');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+  btn.disabled = true;
+  const w = document.getElementById('welcome-new');
+  if (w) w.remove();
+  addMsg('new', 'USER', text);
+
+  if (newPhase === 'idle') {
+    newTopic = text; newPhase = 'clarify';
+    showThinking('new', 'SYSTEM');
+    setStatus('new', '설정 확인 중...', true);
+    try {
+      const reply = await callClaude(CLARIFY_SYSTEM, [{role:'user',content:text}]);
+      removeThinking();
+      addMsg('new', 'SYSTEM', reply);
+      setStatus('new', '답변을 입력해주세요');
+    } catch(e) { removeThinking(); addMsg('new', 'SYSTEM', `(오류: ${e.message})`); }
+    btn.disabled = false;
+  } else if (newPhase === 'clarify') {
+    newTopic = `설정: ${newTopic}\n유저 답변: ${text}`;
+    newPhase = 'debate'; newHistory = [];
+    setStatus('new', '토론 시작...', true);
+    addDivider('new', '토론 시작');
+    await runNewDebate();
+    newPhase = 'idle';
+  }
+}
+
+function useChip(el) {
+  document.getElementById('input-new').value = el.textContent;
+  document.getElementById('input-new').focus();
+}
+
+document.getElementById('input-new').addEventListener('keydown', e => {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); startNew(); }
+});
+document.getElementById('input-new').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// ─── Tab 2: 설정 보강 ───
+const fileInput = document.getElementById('file-input');
+const fileNameEl = document.getElementById('file-name');
+const expandBtn = document.getElementById('expand-start-btn');
+const uploadLabel = document.getElementById('upload-label');
+
+fileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) loadFile(file);
+});
+
+uploadLabel.addEventListener('dragover', e => { e.preventDefault(); uploadLabel.style.borderColor='#6050b0'; });
+uploadLabel.addEventListener('dragleave', () => { uploadLabel.style.borderColor='#3a2870'; });
+uploadLabel.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadLabel.style.borderColor='#3a2870';
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    expandContent = ev.target.result;
+    fileNameEl.textContent = '📄 ' + file.name;
+    fileNameEl.style.display = 'block';
+    expandBtn.style.display = 'inline-flex';
+    setStatus('exp', '파일 로드 완료 — 토론 시작 버튼을 눌러주세요');
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function buildExpandMessages(forWho) {
+  const lines = [
+    '분석할 설정 문서:', '---', expandContent.slice(0, 6000), '---', '',
+    '--- 지금까지 토론 ---'
+  ];
+  for (const h of expandHistory) lines.push(`[기획사 ${h.who}] ${h.text}`);
+  lines.push('', `이제 당신 (기획사 ${forWho})의 차례입니다. 이 설정의 보강 포인트를 지적하세요.`);
+  return [{ role:'user', content:lines.join('\n') }];
+}
+
+async function startExpand() {
+  if (expandRunning || !expandContent) return;
+  expandRunning = true;
+  expandBtn.disabled = true;
+
+  document.getElementById('expand-zone').remove();
+  setStatus('exp', '토론 시작...', true);
+
+  for (let round=1; round<=3; round++) {
+    addDivider('expand', `Round ${round} / 3`);
+    for (const who of ['A','B','C']) {
+      showThinking('expand', who);
+      setStatus('exp', `기획사 ${who} 분석 중...`, true);
+      try {
+        const reply = await callClaude(EXPAND_SYSTEMS[who], buildExpandMessages(who));
+        removeThinking();
+        addMsg('expand', who, reply);
+        expandHistory.push({ who, text:reply });
+      } catch(e) { removeThinking(); addMsg('expand', who, `(오류: ${e.message})`); }
+    }
+  }
+
+  addDivider('expand', '보강 문서 작성 중');
+  showThinking('expand', 'EXPAND');
+  setStatus('exp', '보강 HTML 작성 중...', true);
+
+  const lines = [
+    '원본 설정 문서:', '---', expandContent.slice(0, 6000), '---', '',
+    '기획사 토론:',
+  ];
+  for (const h of expandHistory) lines.push(`[기획사 ${h.who}] ${h.text}`);
+  lines.push('', '이 토론을 반영해 원본을 완전히 보강한 HTML 설정 문서를 출력하세요.');
+
+  try {
+    const result = await callClaude(EXPAND_CONCLUDE_SYSTEM, [{role:'user',content:lines.join('\n')}], 4000);
+    removeThinking();
+
+    const chat = getChat('expand');
+    const wrap = document.createElement('div');
+    wrap.className = 'msg msg-expand';
+    wrap.innerHTML = `
+      <div class="msg-meta">
+        <span class="msg-who">보강 완료</span>
+        <span class="msg-role">확장 문서 준비됨</span>
+      </div>
+      <div class="bubble">HTML 보강 문서가 완성되었습니다. 아래 버튼으로 다운로드하세요.</div>`;
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'download-btn';
+    dlBtn.innerHTML = '↓ 보강된 HTML 다운로드';
+    dlBtn.onclick = () => {
+      let html = result.replace(/^```html\s*/i,'').replace(/```\s*$/,'').trim();
+      if (!html.startsWith('<!')) html = result;
+      const blob = new Blob([html], {type:'text/html'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'expanded_setting.html';
+      a.click();
+    };
+    wrap.appendChild(dlBtn);
+    chat.appendChild(wrap);
+    chat.scrollTop = 99999;
+    setStatus('exp', '보강 완료');
+  } catch(e) {
+    removeThinking();
+    addMsg('expand', 'EXPAND', `(오류: ${e.message})`);
+    setStatus('exp', '오류 발생');
+  }
+  expandRunning = false;
+}
+</script>
+</body>
+</html>
