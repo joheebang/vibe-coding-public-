@@ -550,81 +550,9 @@ textarea::placeholder { color: var(--muted); font-size: 12px; }
   box-shadow: 0 0 12px rgba(93,217,192,.15);
 }
 
-/* ─── API Key Modal ─── */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.7);
-  backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-  animation: fade-in 0.2s ease;
-}
-@keyframes fade-in { from{opacity:0} to{opacity:1} }
-.modal {
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 14px;
-  padding: 28px;
-  width: 340px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.5);
-  animation: modal-in 0.25s ease;
-}
-@keyframes modal-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-.modal h3 {
-  font-size: 15px;
-  font-weight: 600;
-  color: #e0d8f8;
-  margin-bottom: 8px;
-}
-.modal p {
-  font-size: 12px;
-  color: var(--text2);
-  line-height: 1.7;
-  margin-bottom: 16px;
-}
-.modal input {
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  padding: 10px 12px;
-  outline: none;
-  margin-bottom: 14px;
-  transition: border-color 0.2s;
-}
-.modal input:focus { border-color: #5040a0; }
-.modal-btn {
-  width: 100%;
-  padding: 10px;
-  background: linear-gradient(135deg, #3a2878, #2a1e60);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: #d0c8f8;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.modal-btn:hover { background: linear-gradient(135deg, #4a3888, #361e70); }
-.modal-note { font-size: 10px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
 </style>
 </head>
 <body>
-
-<!-- API Key Modal -->
-<div class="modal-overlay" id="api-modal">
-  <div class="modal">
-    <h3>🔑 API 키 입력</h3>
-    <p>Anthropic API 키를 입력해주세요.<br>키는 이 브라우저에만 저장됩니다.</p>
-    <input type="password" id="api-key-input" placeholder="sk-ant-api03-...">
-    <button class="modal-btn" onclick="saveApiKey()">시작하기</button>
-    <p class="modal-note">* 키는 sessionStorage에만 저장되며 외부로 전송되지 않습니다.<br>* API 사용 요금은 Anthropic 계정에서 확인하세요.</p>
-  </div>
-</div>
 
 <!-- Header -->
 <header>
@@ -706,25 +634,6 @@ textarea::placeholder { color: var(--muted); font-size: 12px; }
 </div>
 
 <script>
-// ─── API Key ───
-let API_KEY = sessionStorage.getItem('crack_api_key') || '';
-
-function saveApiKey() {
-  const val = document.getElementById('api-key-input').value.trim();
-  if (!val) return;
-  API_KEY = val;
-  sessionStorage.setItem('crack_api_key', val);
-  document.getElementById('api-modal').remove();
-}
-
-document.getElementById('api-key-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') saveApiKey();
-});
-
-window.addEventListener('load', () => {
-  if (API_KEY) document.getElementById('api-modal').remove();
-});
-
 // ─── System Prompts ───
 const SYSTEMS = {
   A: `당신은 기획사 A, 판타지 세계관 설계 전문가입니다.
@@ -956,19 +865,12 @@ function removeThinking() {
 
 // ─── API ───
 async function callClaude(system, messages, maxTokens=1000) {
-  if (!API_KEY) throw new Error('API key missing');
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens, system, messages })
   });
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
   return data.content?.[0]?.text?.trim() || '(응답 없음)';
 }
 
