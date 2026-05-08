@@ -190,6 +190,20 @@ header {
 .pill-c { background: var(--c-dim); border-color: var(--c-border); color: var(--c); }
 .pill-c .pill-dot { background: var(--c); }
 
+/* ─── Mobile Header ─── */
+@media (max-width: 540px) {
+  header {
+    padding: 0 14px;
+    height: 50px;
+  }
+  .logo-sub { display: none; }
+  .logo-text { font-size: 13px; }
+  .agents { gap: 4px; }
+  .agent-pill { padding: 3px 8px; font-size: 10px; gap: 4px; }
+  .pill-label { display: none; }
+  .key-btn { padding: 5px 9px; font-size: 10px; }
+}
+
 /* ─── Tabs ─── */
 .tabs {
   display: flex;
@@ -631,9 +645,9 @@ textarea::placeholder { color: var(--muted); font-size: 13px; }
       API 키
     </button>
     <div class="agents">
-      <div class="agent-pill pill-a"><div class="pill-dot"></div>A · 세계관</div>
-      <div class="agent-pill pill-b"><div class="pill-dot"></div>B · 캐릭터</div>
-      <div class="agent-pill pill-c"><div class="pill-dot"></div>C · 서사</div>
+      <div class="agent-pill pill-a"><div class="pill-dot"></div>A<span class="pill-label"> · 세계관</span></div>
+      <div class="agent-pill pill-b"><div class="pill-dot"></div>B<span class="pill-label"> · 캐릭터</span></div>
+      <div class="agent-pill pill-c"><div class="pill-dot"></div>C<span class="pill-label"> · 서사</span></div>
     </div>
   </div>
 </header>
